@@ -5,23 +5,33 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-const char* ssid = "CHANGE ACCORDING TO YOUR WIFI NAME";
-const char* pasword = "CHANGE ACCORDING TO YOUR WIFI PASWORD";
+const char* ssid = "Ruangan 1";
+const char* pasword = "kimmy123";
 
-const int relay1 = 27;
-const int relay2 = 14;
-const int relay3 = 12;
+const int relay1 = 14;
+const int relay2 = 12;
+const int relay3 = 13;
+
+const int lj1 = 26;
+const int lj2 = 25;
+const int lk1 = 33;
+const int lk2 = 32;
+const int lm1 = 15;
+const int lm2 = 2;
+
+float t;
+float h;
 
 AsyncWebServer server(80);
 
-#define DHTPIN 26     
+#define DHTPIN 27     
 #define DHTTYPE    DHT22     
 
 DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 String readDHTTemperature() {
-  float t = dht.readTemperature();
+  t = dht.readTemperature();
   if (isnan(t)) {    
     Serial.println("Failed to read from DHT sensor!");
     lcd.setCursor(0,0);
@@ -41,7 +51,7 @@ String readDHTTemperature() {
 }
 
 String readDHTHumidity() {
-  float h = dht.readHumidity();
+  h = dht.readHumidity();
   if (isnan(h)) {
     Serial.println("Failed to read from DHT sensor!");
     return "--";
@@ -170,7 +180,7 @@ void setup() {
   dht.begin();
   
   // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, pasword);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Connecting to WiFi..");
@@ -186,9 +196,22 @@ void setup() {
   pinMode(relay1, OUTPUT);
   pinMode(relay2, OUTPUT);
   pinMode(relay3, OUTPUT);
-  digitalWrite(relay1, HIGH);
-  digitalWrite(relay2, HIGH);
-  digitalWrite(relay3, HIGH);
+  digitalWrite(relay1, LOW);
+  digitalWrite(relay2, LOW);
+  digitalWrite(relay3, LOW);
+
+  pinMode(lj1, OUTPUT);
+  pinMode(lj2, OUTPUT);
+  pinMode(lk1, OUTPUT);
+  pinMode(lk2, OUTPUT);
+  pinMode(lm1, OUTPUT);
+  pinMode(lm2, OUTPUT);
+  digitalWrite(lj1, LOW);
+  digitalWrite(lj2, LOW);
+  digitalWrite(lk1, LOW);
+  digitalWrite(lk2, LOW);
+  digitalWrite(lm1, LOW);
+  digitalWrite(lm2, LOW);
   
   // Send web page to client
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -227,7 +250,7 @@ void setup() {
   });
 
   server.on("/R3off", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    digitalWrite(relay3, LOW);
+    digitalWrite(relay3, LOW);  
     request->send(200, "text/plain", "OK");
   }); 
  
@@ -235,5 +258,45 @@ void setup() {
 }
 
 void loop() {
- 
+  Serial.print(t);
+  Serial.println(h);
+  if (t > 20 || t < 30){
+    digitalWrite(lj1,HIGH);
+    digitalWrite(lk1,LOW);
+    digitalWrite(lm1,LOW);
+  }
+  else if (t > 15 && t < 19 || t > 31 && t < 35){
+    digitalWrite(lj1,LOW);
+    digitalWrite(lk1,HIGH);
+    digitalWrite(lm1,LOW);
+  }
+  else if (t < 14 || t > 36){
+    digitalWrite(lj1,LOW);
+    digitalWrite(lk1,LOW);
+    digitalWrite(lm1,HIGH);
+  }
+  else{
+    Serial.println("Data t tidak terbaca");
+  }
+  
+  if (h > 45 || h < 65){
+    digitalWrite(lj2,HIGH);
+    digitalWrite(lk2,LOW);
+    digitalWrite(lm2,LOW);
+  }
+  else if(h > 66 || h < 89){
+    digitalWrite(lj2,LOW);
+    digitalWrite(lk2,HIGH);
+    digitalWrite(lm2,LOW);
+  }
+  else if(h < 44 || h > 90){
+    digitalWrite(lj2,LOW);
+    digitalWrite(lk2,LOW);
+    digitalWrite(lm2,HIGH);    
+  }
+  else{
+    Serial.println("Data h tidak terbaca");
+  }
+
+  delay(500);
 }
